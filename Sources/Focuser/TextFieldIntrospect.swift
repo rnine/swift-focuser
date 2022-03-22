@@ -62,18 +62,19 @@ class TextFieldObserver: NSObject, UITextFieldDelegate {
 public struct FocusModifier<Value: FocusStateCompliant & Hashable>: ViewModifier {
     @Binding var focusedField: Value?
     var equals: Value
-    @State var observer = TextFieldObserver()
-    
+    @State var textFieldObserver = TextFieldObserver()
+    @State var editTextObserver = EditTextObserver()
+
     public func body(content: Content) -> some View {
         content
             .introspectTextField { tf in
                 if !(tf.delegate is TextFieldObserver) {
-                    observer.forwardToDelegate = tf.delegate
-                    tf.delegate = observer
+                    textFieldObserver.forwardToDelegate = tf.delegate
+                    tf.delegate = textFieldObserver
                 }
                 
                 /// when user taps return we navigate to next responder
-                observer.onReturnTap = {
+                textFieldObserver.onReturnTap = {
                     focusedField = focusedField?.next ?? Value.last
                 }
 
@@ -86,6 +87,28 @@ public struct FocusModifier<Value: FocusStateCompliant & Hashable>: ViewModifier
                 
                 if focusedField == equals {
                     tf.becomeFirstResponder()
+                }
+            }
+            .introspectTextView { tv in
+                if !(tv.delegate is EditTextObserver) {
+                    editTextObserver.forwardToDelegate = tv.delegate
+                    tv.delegate = editTextObserver
+                }
+
+                /// when user taps return we navigate to next responder
+                editTextObserver.onReturnTap = {
+                    focusedField = focusedField?.next ?? Value.last
+                }
+
+                /// to show kayboard with `next` or `return`
+                if equals.hashValue == Value.last.hashValue {
+                    tv.returnKeyType = .done
+                } else {
+                    tv.returnKeyType = .next
+                }
+
+                if focusedField == equals {
+                    tv.becomeFirstResponder()
                 }
             }
             .simultaneousGesture(TapGesture().onEnded {
