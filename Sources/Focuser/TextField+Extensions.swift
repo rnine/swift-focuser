@@ -16,8 +16,8 @@ public extension View {
 
 @available(iOS 14.0, *)
 public extension View {
-    func focusEditor<T: FocusStateCompliant>(_ focusedField: Binding<T?>, equals: T) -> some View {
-        modifier(FocusModifierTextEditor(focusedField: focusedField, equals: equals))
+    func focusEditor<T: FocusStateCompliant>(_ focusedField: Binding<T?>, equals: T, scrollViewProxy: ScrollViewProxy? = nil) -> some View {
+        modifier(FocusModifierTextEditor(focusedField: focusedField, equals: equals, scrollViewProxy: scrollViewProxy))
     }
 }
 
